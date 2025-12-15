@@ -1,0 +1,30 @@
+# FRED Data Pipeline Configuration
+
+catalog: "investments"
+schema: "fred"
+
+volumes:
+  rates: "/Volumes/investments/fred/rates"
+  metadata: "/Volumes/investments/fred/metadata"
+
+fred_api:
+  base_url: "https://api.stlouisfed.org/fred"
+  secret_scope: "fred-api"
+  secret_key: "api-key"
+
+rate_series:
+  DFF: "Federal Funds Effective Rate"
+  DTB3: "3-Month Treasury Bill Rate"
+  DGS1: "1-Year Treasury Rate"
+  DGS2: "2-Year Treasury Rate"
+  DGS5: "5-Year Treasury Rate"
+  DGS10: "10-Year Treasury Rate"
+  DGS30: "30-Year Treasury Rate"
+  SOFR: "Secured Overnight Financing Rate (SOFR)"
+  DPRIME: "Bank Prime Loan Rate"
+  MORTGAGE30US: "30-Year Fixed Rate Mortgage Average"
+  MORTGAGE15US: "15-Year Fixed Rate Mortgage Average"
+  BAMLC0A0CM: "ICE BofA US Corporate Index Effective Yield"
+  BAMLH0A0HYM2: "ICE BofA US High Yield Index Effective Yield"
+  T10YIE: "10-Year Breakeven Inflation Rate"
+  T5YIE: "5-Year Breakeven Inflation Rate"

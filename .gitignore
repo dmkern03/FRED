@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Databricks
+.databricks/
+*.dbc
+
+# Secrets - NEVER COMMIT
+*.pem
+*.key
+secrets.yaml
+secrets.json
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files
+*.csv
+*.parquet
+*.json
+data/
+output/
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,23 @@
+# Databricks Asset Bundle configuration for FRED Data Pipeline
+# See https://docs.databricks.com/dev-tools/bundles/index.html
+
+bundle:
+  name: fred-data-pipeline
+  version: 1.0.0
+
+# Include other configuration files
+include:
+  - resources/*.yml
+  - environments/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-1585634049715221.1.azuredatabricks.net/
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-1585634049715221.1.azuredatabricks.net/

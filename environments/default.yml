@@ -1,0 +1,7 @@
+# Environment-specific configurations
+# Override bundle settings per environment
+
+# Example:
+# variables:
+#   catalog: "investments"
+#   schema: "fred"

@@ -1,0 +1,12 @@
+# Databricks Asset Bundle Resources
+# Add job and pipeline definitions here
+
+# Example job definition:
+# resources:
+#   jobs:
+#     fred_daily_pipeline:
+#       name: "FRED Daily Data Pipeline"
+#       tasks:
+#         - task_key: fetch_data
+#           notebook_task:
+#             notebook_path: ../notebooks/05_Daily_API_Call.py
