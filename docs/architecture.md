@@ -24,7 +24,7 @@ This document describes the architecture for the FRED data pipeline in Databrick
 │         ▼                                                                    │
 │  ┌──────────────┐     ┌──────────────────────────────────────┐             │
 │  │ 05_Daily_    │────▶│  Volumes (Landing Zone)              │             │
-│  │  API_Call    │     │  /Volumes/investments/fred/rates/    │  CSV        │
+│  │  API_Call    │     │  /Volumes/investments/fred/observations/│  CSV     │
 │  │              │     │  /Volumes/investments/fred/metadata/ │  JSON       │
 │  └──────────────┘     └──────────────────┬───────────────────┘             │
 │                                          │                                   │
@@ -33,7 +33,7 @@ This document describes the architecture for the FRED data pipeline in Databrick
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                        BRONZE LAYER                                   │   │
 │  │  ┌─────────────────────┐  ┌─────────────────────┐                   │   │
-│  │  │   bronze_rates      │  │   bronze_metadata   │                   │   │
+│  │  │ bronze_observations │  │   bronze_metadata   │                   │   │
 │  │  │   (raw strings)     │  │   (raw strings)     │                   │   │
 │  │  └─────────────────────┘  └─────────────────────┘                   │   │
 │  └──────────────────────────────────┬───────────────────────────────────┘   │
@@ -43,7 +43,7 @@ This document describes the architecture for the FRED data pipeline in Databrick
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                        SILVER LAYER                                   │   │
 │  │  ┌─────────────────────┐  ┌─────────────────────┐                   │   │
-│  │  │   silver_rates      │  │   silver_metadata   │                   │   │
+│  │  │silver_observations  │  │   silver_metadata   │                   │   │
 │  │  │   FK: series_id ────┼──│── PK: series_id     │                   │   │
 │  │  │   FK: date          │  │                     │                   │   │
 │  │  └─────────────────────┘  └─────────────────────┘                   │   │
@@ -54,7 +54,7 @@ This document describes the architecture for the FRED data pipeline in Databrick
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                         GOLD LAYER                                    │   │
 │  │  ┌────────────────────────────────────────────────────────────────┐ │   │
-│  │  │   gold_rates (denormalized, Change Data Feed enabled)          │ │   │
+│  │  │ gold_observations (denormalized, Change Data Feed enabled)     │ │   │
 │  │  └────────────────────────────────────────────────────────────────┘ │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
@@ -84,8 +84,8 @@ This document describes the architecture for the FRED data pipeline in Databrick
 
 ### Constraints
 - **PK on silver_metadata**: `series_id`
-- **FK on silver_rates**: `series_id` → `silver_metadata`
-- **FK on silver_rates**: `date` → `dim_calendar` (optional)
+- **FK on silver_observations**: `series_id` → `silver_metadata`
+- **FK on silver_observations**: `date` → `dim_calendar` (optional)
 
 Note: Databricks constraints are informational only (not enforced), but help document the data model.
 

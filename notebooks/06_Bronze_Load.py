@@ -1,10 +1,10 @@
 # Databricks notebook source
 # MAGIC %sql
-# MAGIC -- Load rates data
-# MAGIC COPY INTO investments.fred.bronze_rates
-# MAGIC FROM '/Volumes/investments/fred/rates/'
+# MAGIC -- Load observations data
+# MAGIC COPY INTO investments.fred.bronze_observations
+# MAGIC FROM '/Volumes/investments/fred/observations/'
 # MAGIC FILEFORMAT = CSV
-# MAGIC PATTERN = 'fred_rates_historical_*.csv'
+# MAGIC PATTERN = 'fred_observations_historical_*.csv'
 # MAGIC FORMAT_OPTIONS (
 # MAGIC     'header' = 'true',
 # MAGIC     'inferSchema' = 'true'

@@ -11,14 +11,14 @@
 
 CREATE SCHEMA IF NOT EXISTS investments.fred;
 
-CREATE VOLUME IF NOT EXISTS investments.fred.rates;
+CREATE VOLUME IF NOT EXISTS investments.fred.observations;
 CREATE VOLUME IF NOT EXISTS investments.fred.metadata;
 
 -- =============================================================================
 -- BRONZE LAYER
 -- =============================================================================
 
-CREATE TABLE IF NOT EXISTS investments.fred.bronze_rates (
+CREATE TABLE IF NOT EXISTS investments.fred.bronze_observations (
     run_timestamp STRING,
     series_id STRING,
     series_name STRING,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS investments.fred.bronze_rates (
     value DOUBLE
 )
 USING DELTA
-COMMENT 'Bronze layer: Raw FRED rate observations';
+COMMENT 'Bronze layer: Raw FRED observations';
 
 CREATE TABLE IF NOT EXISTS investments.fred.bronze_metadata (
     run_timestamp STRING,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS investments.fred.silver_metadata (
 USING DELTA
 COMMENT 'Silver layer: Cleaned FRED series metadata';
 
-CREATE TABLE IF NOT EXISTS investments.fred.silver_rates (
+CREATE TABLE IF NOT EXISTS investments.fred.silver_observations (
     series_id STRING,
     series_name STRING,
     date DATE,
@@ -82,27 +82,27 @@ CREATE TABLE IF NOT EXISTS investments.fred.silver_rates (
     updated_at TIMESTAMP
 )
 USING DELTA
-COMMENT 'Silver layer: Cleaned FRED rate observations';
+COMMENT 'Silver layer: Cleaned FRED observations';
 
 -- Primary Key on silver_metadata
 ALTER TABLE investments.fred.silver_metadata 
 ADD CONSTRAINT pk_series PRIMARY KEY(series_id);
 
--- Foreign Key from silver_rates to silver_metadata
-ALTER TABLE investments.fred.silver_rates 
-ADD CONSTRAINT fk_series 
+-- Foreign Key from silver_observations to silver_metadata
+ALTER TABLE investments.fred.silver_observations
+ADD CONSTRAINT fk_series
 FOREIGN KEY(series_id) REFERENCES investments.fred.silver_metadata(series_id);
 
--- Foreign Key from silver_rates to dim_calendar (optional)
--- ALTER TABLE investments.fred.silver_rates 
--- ADD CONSTRAINT fk_date 
+-- Foreign Key from silver_observations to dim_calendar (optional)
+-- ALTER TABLE investments.fred.silver_observations
+-- ADD CONSTRAINT fk_date
 -- FOREIGN KEY(date) REFERENCES common.reference.dim_calendar(calendar_date);
 
 -- =============================================================================
 -- GOLD LAYER
 -- =============================================================================
 
-CREATE TABLE IF NOT EXISTS investments.fred.gold_rates (
+CREATE TABLE IF NOT EXISTS investments.fred.gold_observations (
     series_id STRING,
     date DATE,
     value DOUBLE,
@@ -112,8 +112,8 @@ CREATE TABLE IF NOT EXISTS investments.fred.gold_rates (
     source STRING
 )
 USING DELTA
-COMMENT 'Gold layer: Denormalized FRED rates with metadata';
+COMMENT 'Gold layer: Denormalized FRED data with metadata';
 
 -- Enable Change Data Feed for downstream consumers
-ALTER TABLE investments.fred.gold_rates
+ALTER TABLE investments.fred.gold_observations
 SET TBLPROPERTIES (delta.enableChangeDataFeed = true);

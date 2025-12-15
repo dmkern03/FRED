@@ -47,20 +47,20 @@ class TestDataTransformations:
         assert deduplicated.iloc[0]["value"] == 4.55
 
 
-class TestRateSeries:
-    """Tests for rate series configuration."""
-    
-    def test_treasury_rates_included(self):
-        """Test that key treasury rates are in the series list."""
-        rate_series = {
+class TestSeries:
+    """Tests for series configuration."""
+
+    def test_treasury_series_included(self):
+        """Test that key treasury series are in the series list."""
+        series = {
             "DGS1": "1-Year Treasury Rate",
             "DGS2": "2-Year Treasury Rate",
             "DGS5": "5-Year Treasury Rate",
             "DGS10": "10-Year Treasury Rate",
             "DGS30": "30-Year Treasury Rate",
         }
-        assert "DGS10" in rate_series
-        assert "DGS30" in rate_series
+        assert "DGS10" in series
+        assert "DGS30" in series
 
 
 if __name__ == "__main__":
