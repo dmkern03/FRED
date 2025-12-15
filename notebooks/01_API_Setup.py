@@ -11,11 +11,11 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Create schema (if needed)  
+# MAGIC -- Create schema (if needed)
 # MAGIC CREATE SCHEMA IF NOT EXISTS investments.fred;
 # MAGIC
-# MAGIC -- Create volume for rate observation data
-# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.rates;
+# MAGIC -- Create volume for observation data
+# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.observations;
 # MAGIC
 # MAGIC -- Create volume for series metadata/dimensional info
 # MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.metadata;

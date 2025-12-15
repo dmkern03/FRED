@@ -10,8 +10,8 @@ The FRED data pipeline stores Federal Reserve Economic Data using a medallion ar
 
 ### Bronze Layer
 
-#### investments.fred.bronze_rates
-Raw rate observations loaded from CSV files.
+#### investments.fred.bronze_observations
+Raw observations loaded from CSV files.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -19,7 +19,7 @@ Raw rate observations loaded from CSV files.
 | series_id | STRING | FRED series identifier |
 | series_name | STRING | Friendly name |
 | date | STRING | Observation date |
-| value | DOUBLE | Rate value |
+| value | DOUBLE | Observation value |
 
 #### investments.fred.bronze_metadata
 Raw series metadata loaded from JSON files.
@@ -68,7 +68,7 @@ Raw series metadata loaded from JSON files.
 | run_timestamp | TIMESTAMP | No | Source fetch timestamp |
 | updated_at | TIMESTAMP | No | Silver update timestamp |
 
-#### investments.fred.silver_rates
+#### investments.fred.silver_observations
 **Foreign Keys**: `series_id` → `silver_metadata.series_id`, `date` → `dim_calendar.calendar_date`
 
 | Column | Type | Nullable | Description |
@@ -76,7 +76,7 @@ Raw series metadata loaded from JSON files.
 | series_id | STRING | No | FRED series identifier |
 | series_name | STRING | No | Friendly name |
 | date | DATE | No | Observation date |
-| value | DOUBLE | No | Rate value |
+| value | DOUBLE | No | Observation value |
 | run_timestamp | TIMESTAMP | No | Source fetch timestamp |
 | updated_at | TIMESTAMP | No | Silver update timestamp |
 
@@ -84,14 +84,14 @@ Raw series metadata loaded from JSON files.
 
 ### Gold Layer
 
-#### investments.fred.gold_rates
+#### investments.fred.gold_observations
 Denormalized table with Change Data Feed enabled.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | series_id | STRING | FRED series identifier |
 | date | DATE | Observation date |
-| value | DOUBLE | Rate value |
+| value | DOUBLE | Observation value |
 | title | STRING | Official FRED title |
 | friendly_name | STRING | User-friendly name |
 | units | STRING | Unit of measurement |

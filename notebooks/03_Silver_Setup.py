@@ -27,9 +27,9 @@
 # MAGIC USING DELTA;
 # MAGIC -- -- COMMENT 'Silver layer: Cleaned FRED series metadata with proper data types';
 # MAGIC
-# MAGIC -- Silver table for rates with proper data types
-# MAGIC DROP TABLE IF EXISTS investments.fred.silver_rates;
-# MAGIC CREATE TABLE IF NOT EXISTS investments.fred.silver_rates (
+# MAGIC -- Silver table for observations with proper data types
+# MAGIC DROP TABLE IF EXISTS investments.fred.silver_observations;
+# MAGIC CREATE TABLE IF NOT EXISTS investments.fred.silver_observations (
 # MAGIC     series_id STRING,
 # MAGIC     series_name STRING,
 # MAGIC     date DATE,
@@ -38,7 +38,7 @@
 # MAGIC     updated_at TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA;
-# MAGIC -- -- COMMENT 'Silver layer: Cleaned FRED rate observations with proper data types';
+# MAGIC -- -- COMMENT 'Silver layer: Cleaned FRED observations with proper data types';
 
 # COMMAND ----------
 
@@ -52,8 +52,8 @@
 # MAGIC ADD CONSTRAINT pk_series PRIMARY KEY(series_id);
 # MAGIC
 # MAGIC -- Add the foreign key constraint (after primary key is set)
-# MAGIC ALTER TABLE investments.fred.silver_rates 
-# MAGIC ADD CONSTRAINT fk_series 
+# MAGIC ALTER TABLE investments.fred.silver_observations
+# MAGIC ADD CONSTRAINT fk_series
 # MAGIC FOREIGN KEY(series_id) REFERENCES investments.fred.silver_metadata(series_id);
 
 # COMMAND ----------
@@ -72,6 +72,6 @@
 # MAGIC ADD CONSTRAINT pk_date PRIMARY KEY(calendar_date);
 # MAGIC
 # MAGIC -- Add the foreign key constraint
-# MAGIC ALTER TABLE investments.fred.silver_rates 
-# MAGIC ADD CONSTRAINT fk_date 
+# MAGIC ALTER TABLE investments.fred.silver_observations
+# MAGIC ADD CONSTRAINT fk_date
 # MAGIC FOREIGN KEY(date) REFERENCES common.reference.dim_calendar(calendar_date);

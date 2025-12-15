@@ -69,12 +69,12 @@
 
 # MAGIC %sql
 # MAGIC -- -----------------------------------------------------------------------------
-# MAGIC -- Load Silver Rates
+# MAGIC -- Load Silver Observations
 # MAGIC -- Converts data types and deduplicates by series_id + date (max run_timestamp)
 # MAGIC -- -----------------------------------------------------------------------------
-# MAGIC MERGE INTO investments.fred.silver_rates AS target
+# MAGIC MERGE INTO investments.fred.silver_observations AS target
 # MAGIC USING (
-# MAGIC     SELECT 
+# MAGIC     SELECT
 # MAGIC         series_id,
 # MAGIC         series_name,
 # MAGIC         TO_DATE(date) AS date,
@@ -84,7 +84,7 @@
 # MAGIC     FROM (
 # MAGIC         SELECT *,
 # MAGIC             ROW_NUMBER() OVER (PARTITION BY series_id, date ORDER BY run_timestamp DESC) AS rn
-# MAGIC         FROM investments.fred.bronze_rates
+# MAGIC         FROM investments.fred.bronze_observations
 # MAGIC         WHERE value IS NOT NULL
 # MAGIC     )
 # MAGIC     WHERE rn = 1

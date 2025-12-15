@@ -4,12 +4,12 @@
 # MAGIC CREATE SCHEMA IF NOT EXISTS investments.fred;
 # MAGIC
 # MAGIC -- Landing Zone Volumes (CSV files)
-# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.rates;
+# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.observations;
 # MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.metadata;
 # MAGIC
 # MAGIC -- Bronze Layer Delta Tables
-# MAGIC DROP TABLE IF EXISTS investments.fred.bronze_rates;
-# MAGIC CREATE TABLE IF NOT EXISTS investments.fred.bronze_rates (
+# MAGIC DROP TABLE IF EXISTS investments.fred.bronze_observations;
+# MAGIC CREATE TABLE IF NOT EXISTS investments.fred.bronze_observations (
 # MAGIC     run_timestamp TIMESTAMP,
 # MAGIC     series_id STRING,
 # MAGIC     series_name STRING,
@@ -18,7 +18,7 @@
 # MAGIC     ingestion_timestamp TIMESTAMP
 # MAGIC )
 # MAGIC USING DELTA
-# MAGIC COMMENT 'Bronze layer: Raw FRED rate observations';
+# MAGIC COMMENT 'Bronze layer: Raw FRED observations';
 # MAGIC
 # MAGIC DROP TABLE IF EXISTS investments.fred.bronze_metadata;
 # MAGIC CREATE TABLE IF NOT EXISTS investments.fred.bronze_metadata (
@@ -54,14 +54,14 @@
 # MAGIC     ▼
 # MAGIC ┌─────────────────────────────────────────┐
 # MAGIC │  Landing Zone (CSV in Volumes)          │
-# MAGIC │  /Volumes/investments/fred/rates/       │
+# MAGIC │  /Volumes/investments/fred/observations/ │
 # MAGIC │  /Volumes/investments/fred/metadata/    │
 # MAGIC └─────────────────────────────────────────┘
 # MAGIC     │
 # MAGIC     ▼
 # MAGIC ┌─────────────────────────────────────────┐
 # MAGIC │  Bronze Layer (Delta Tables)            │
-# MAGIC │  investments.fred.bronze_rates          │
+# MAGIC │  investments.fred.bronze_observations   │
 # MAGIC │  investments.fred.bronze_metadata       │
 
 # COMMAND ----------
@@ -72,13 +72,13 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Latest rates
-# MAGIC SELECT * FROM investments.fred.bronze_rates 
-# MAGIC WHERE run_timestamp = (SELECT MAX(run_timestamp) FROM investments.fred.bronze_rates);
+# MAGIC -- Latest observations
+# MAGIC SELECT * FROM investments.fred.bronze_observations
+# MAGIC WHERE run_timestamp = (SELECT MAX(run_timestamp) FROM investments.fred.bronze_observations);
 # MAGIC
-# MAGIC -- Rate history for 10-Year Treasury
-# MAGIC SELECT * FROM investments.fred.bronze_rates 
-# MAGIC WHERE series_id = 'DGS10' 
+# MAGIC -- Observation history for 10-Year Treasury
+# MAGIC SELECT * FROM investments.fred.bronze_observations
+# MAGIC WHERE series_id = 'DGS10'
 # MAGIC ORDER BY date DESC;
 # MAGIC
 # MAGIC -- Metadata for all series

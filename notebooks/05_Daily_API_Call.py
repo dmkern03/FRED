@@ -17,14 +17,14 @@ DATABRICKS SETUP INSTRUCTIONS
    -- Create schema (if needed)  
    CREATE SCHEMA IF NOT EXISTS investments.fred;
    
-   -- Create volume for rate observation data
-   CREATE VOLUME IF NOT EXISTS investments.fred.rates;
+   -- Create volume for observation data
+   CREATE VOLUME IF NOT EXISTS investments.fred.observations;
    
    -- Create volume for series metadata/dimensional info
    CREATE VOLUME IF NOT EXISTS investments.fred.metadata;
    
    -- Create Bronze layer tables (empty schemas - data loaded by script)
-   CREATE TABLE IF NOT EXISTS investments.fred.bronze_rates (
+   CREATE TABLE IF NOT EXISTS investments.fred.bronze_observations (
        run_timestamp TIMESTAMP,
        series_id STRING,
        series_name STRING,
@@ -33,7 +33,7 @@ DATABRICKS SETUP INSTRUCTIONS
        ingestion_timestamp TIMESTAMP
    )
    USING DELTA
-   COMMENT 'Bronze layer: Raw FRED rate observations';
+   COMMENT 'Bronze layer: Raw FRED observations';
    
    CREATE TABLE IF NOT EXISTS investments.fred.bronze_metadata (
        run_timestamp TIMESTAMP,
@@ -96,7 +96,7 @@ DATABRICKS SETUP INSTRUCTIONS
    -----------------
    - Run manually to test, or let the schedule trigger it
    - Check the volumes for output CSV files:
-     SELECT * FROM LIST('/Volumes/investments/fred/rates/')
+     SELECT * FROM LIST('/Volumes/investments/fred/observations/')
      SELECT * FROM LIST('/Volumes/investments/fred/metadata/')
 
 ================================================================================
@@ -117,11 +117,11 @@ CATALOG = "investments"
 SCHEMA = "fred"
 
 # Separate volumes for different data types (landing zone)
-VOLUME_RATES = "rates"             # For rate observation data
-VOLUME_METADATA = "metadata"       # For series metadata/dimensional info
+VOLUME_OBSERVATIONS = "observations"  # For observation data
+VOLUME_METADATA = "metadata"          # For series metadata/dimensional info
 
 # Construct volume paths (Databricks Volumes path format)
-VOLUME_PATH_RATES = f"/Volumes/{CATALOG}/{SCHEMA}/{VOLUME_RATES}"
+VOLUME_PATH_OBSERVATIONS = f"/Volumes/{CATALOG}/{SCHEMA}/{VOLUME_OBSERVATIONS}"
 VOLUME_PATH_METADATA = f"/Volumes/{CATALOG}/{SCHEMA}/{VOLUME_METADATA}"
 
 # Secret scope and key name for FRED API key
@@ -382,7 +382,7 @@ def fetch_multiple_series(
 # OUTPUT FUNCTIONS
 # =============================================================================
 
-def save_to_csv(df: pd.DataFrame, volume_path: str, filename_prefix: str = "fred_rates") -> str:
+def save_to_csv(df: pd.DataFrame, volume_path: str, filename_prefix: str = "fred_observations") -> str:
     """
     Save DataFrame to a timestamped CSV file in Databricks Volume.
     
@@ -415,8 +415,8 @@ def main():
     print("FRED Rate Data Fetcher - Databricks Edition")
     print("=" * 60)
     print(f"\nLanding Zone (CSV Files):")
-    print(f"  Rates Volume:    {VOLUME_PATH_RATES}")
-    print(f"  Metadata Volume: {VOLUME_PATH_METADATA}")
+    print(f"  Observations Volume: {VOLUME_PATH_OBSERVATIONS}")
+    print(f"  Metadata Volume:     {VOLUME_PATH_METADATA}")
     print(f"\nRun Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # ==========================================================================
@@ -444,7 +444,7 @@ def main():
     # ==========================================================================
     # VERIFY VOLUME ACCESS (BOTH VOLUMES)
     # ==========================================================================
-    for volume_name, volume_path in [("Rates", VOLUME_PATH_RATES), ("Metadata", VOLUME_PATH_METADATA)]:
+    for volume_name, volume_path in [("Observations", VOLUME_PATH_OBSERVATIONS), ("Metadata", VOLUME_PATH_METADATA)]:
         try:
             test_path = f"{volume_path}/.write_test"
             with open(test_path, 'w') as f:
@@ -498,7 +498,7 @@ def main():
     print(f"\nTotal observations retrieved: {len(df)}")
     
     # Save full historical data (long format)
-    save_to_csv(df, VOLUME_PATH_RATES, "fred_rates_historical")
+    save_to_csv(df, VOLUME_PATH_OBSERVATIONS, "fred_observations_historical")
     
     print("\n" + "=" * 60)
     print("✓ FRED data fetch completed successfully!")

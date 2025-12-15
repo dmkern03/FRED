@@ -4,7 +4,7 @@ catalog: "investments"
 schema: "fred"
 
 volumes:
-  rates: "/Volumes/investments/fred/rates"
+  observations: "/Volumes/investments/fred/observations"
   metadata: "/Volumes/investments/fred/metadata"
 
 fred_api:

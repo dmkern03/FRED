@@ -131,7 +131,7 @@ FRED/
                 │ FK: date
                 │
 ┌───────────────┴─────────────────┐     ┌────────────────────────┐
-│  investments.fred.silver_rates  │────▶│  investments.fred.     │
+│investments.fred.silver_observations│───▶│  investments.fred.     │
 │  FK: series_id                  │     │  silver_metadata       │
 └─────────────────────────────────┘     │  PK: series_id         │
                                         └────────────────────────┘
