@@ -1,0 +1,37 @@
+# Production environment configuration
+# Override settings for production deployment
+
+variables:
+  catalog: "investments"
+  schema: "fred"
+
+targets:
+  prod:
+    # Production-specific pipeline settings
+    resources:
+      pipelines:
+        fred_dlt_pipeline:
+          # Use continuous mode in production for real-time processing
+          continuous: true
+
+          # Production cluster configuration
+          serverless: true
+
+          # Stricter data quality in production
+          expectations:
+            fail_on_error: true
+
+          # Enable notifications for production failures
+          notifications:
+            - alerts:
+                - "on-update-failure"
+                - "on-flow-failure"
+              email_recipients:
+                - "data-team@example.com"  # Replace with your team email
+
+          # Production table properties
+          configuration:
+            catalog: "investments"
+            schema: "fred"
+            # Add production-specific configs
+            pipelines.reset.allowed: "false"

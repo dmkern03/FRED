@@ -1,0 +1,30 @@
+# Development environment configuration
+# Override settings for development deployment
+
+variables:
+  catalog: "investments"
+  schema: "fred"
+
+targets:
+  dev:
+    # Development-specific pipeline settings
+    resources:
+      pipelines:
+        fred_dlt_pipeline:
+          # Use triggered mode in dev for cost savings
+          continuous: false
+
+          # Development cluster configuration
+          serverless: true
+
+          # Lenient data quality in dev for testing
+          expectations:
+            fail_on_error: false
+
+          # No notifications in dev
+          # notifications: []
+
+          # Development table properties
+          configuration:
+            catalog: "investments"
+            schema: "fred_dev"  # Separate schema for dev
