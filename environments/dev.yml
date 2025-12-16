@@ -8,6 +8,11 @@ variables:
 targets:
   dev:
     # Development-specific pipeline settings
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-90335e8a-09d6.cloud.databricks.com/
+    
     resources:
       pipelines:
         fred_dlt_pipeline:

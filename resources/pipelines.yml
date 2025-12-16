@@ -41,8 +41,8 @@ resources:
       # storage: "/mnt/dlt/fred"
 
       # Notifications (optional)
-      # notifications:
-      #   - alerts:
-      #       - "on-update-failure"
-      #     email_recipients:
-      #       - "data-team@example.com"
+       notifications:
+         - alerts:
+             - "on-update-failure"
+           email_recipients:
+             - "dmkern03@gmail.com"

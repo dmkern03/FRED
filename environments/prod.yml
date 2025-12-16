@@ -8,6 +8,10 @@ variables:
 targets:
   prod:
     # Production-specific pipeline settings
+    mode: production
+    workspace:
+      host: https://dbc-6c839758-aba3.cloud.databricks.com/
+
     resources:
       pipelines:
         fred_dlt_pipeline:
