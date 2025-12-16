@@ -6,9 +6,9 @@ A comprehensive data pipeline for fetching, storing, and transforming Federal Re
 
 This project creates and maintains FRED economic data in a Databricks lakehouse with:
 
-- **Bronze Layer**: Raw data ingestion from FRED API (CSV/JSON → Delta)
-- **Silver Layer**: Cleaned, typed, and deduplicated data with constraints
-- **Gold Layer**: Business-ready denormalized table with Change Data Feed enabled
+- **Bronze Layer**: Raw data ingestion using Streaming Tables with Auto Loader (cloud_files)
+- **Silver Layer**: Cleaned, typed data using Streaming Tables with constraints
+- **Gold Layer**: Business-ready denormalized Materialized View
 
 ## Data Sources
 
@@ -35,9 +35,10 @@ This project creates and maintains FRED economic data in a Databricks lakehouse 
 
 - ✅ Automated FRED API data fetching
 - ✅ Medallion architecture (Bronze → Silver → Gold)
-- ✅ MERGE operations for incremental updates
+- ✅ **Streaming Tables** for Bronze and Silver layers with Auto Loader
+- ✅ **Materialized View** for Gold layer with automatic refresh
 - ✅ Primary/Foreign key constraints in Silver layer
-- ✅ Change Data Feed enabled on Gold table
+- ✅ Continuous incremental processing with streaming
 - ✅ Databricks Secrets integration for API keys
 - ✅ Databricks Asset Bundles configuration
 
@@ -62,22 +63,45 @@ databricks secrets create-scope fred-api
 databricks secrets put-secret fred-api api-key --string-value "YOUR_API_KEY"
 ```
 
-### 3. Run Notebooks in Order
+### 3. Create Delta Live Tables Pipeline
+
+**Important:** Notebooks 02-04 must be run as part of a Delta Live Tables (DLT) pipeline, not as standalone notebooks.
+
+#### Option A: Using Databricks Asset Bundles (Recommended)
+```bash
+cd s:\repos\FRED
+databricks bundle deploy --target dev
+databricks bundle run fred_dlt_pipeline --target dev
+```
+
+#### Option B: Using Databricks UI
+1. Navigate to "Delta Live Tables" in Databricks
+2. Click "Create Pipeline"
+3. Add notebooks: `02_Bronze_Setup.py`, `03_Silver_Setup.py`, `04_Gold_Setup.py`
+4. Set target catalog: `investments`, schema: `fred`
+5. Enable Photon and set cluster to Enhanced Autoscaling (1-2 workers)
+6. Create and start the pipeline
+
+**See [DLT Pipeline Setup Guide](docs/dlt_pipeline_setup.md) for detailed instructions.**
+
+### 4. One-Time Setup
+
+Before running the DLT pipeline, run these notebooks once:
 
 | Step | Notebook | Purpose |
 |------|----------|---------|
 | 1 | `01_API_Setup.py` | Create volumes and configure secrets |
-| 2 | `02_Bronze_Setup.py` | Create Bronze layer tables |
-| 3 | `03_Silver_Setup.py` | Create Silver layer tables with constraints |
-| 4 | `04_Gold_Setup.py` | Create Gold layer table |
-| 5 | `05_Daily_API_Call.py` | Fetch data from FRED API |
-| 6 | `06_Bronze_Load.py` | Load data into Bronze tables |
-| 7 | `07_Silver_Load.py` | Transform and load Silver tables |
-| 8 | `08_Gold_Load.py` | Create denormalized Gold table |
+| 2 | `05_Daily_API_Call.py` | Fetch initial data from FRED API |
 
-### 4. Schedule Daily Pipeline
+### 5. Schedule Daily Data Fetching
 
-Schedule notebooks 5-8 as a daily Databricks Workflow.
+Schedule only `05_Daily_API_Call.py` as a daily Databricks Workflow to fetch data from FRED API.
+
+**Note:** The DLT pipeline automatically handles all data processing:
+- Bronze Streaming Tables auto-ingest from volumes using Auto Loader
+- Silver Streaming Tables auto-transform from Bronze
+- Gold Materialized View auto-refreshes from Silver
+- Notebooks 6-8 are deprecated and no longer needed
 
 ## Project Structure
 
@@ -90,13 +114,13 @@ FRED/
 │
 ├── notebooks/
 │   ├── 01_API_Setup.py         # One-time: volumes & secrets
-│   ├── 02_Bronze_Setup.py      # One-time: Bronze tables
-│   ├── 03_Silver_Setup.py      # One-time: Silver tables + constraints
-│   ├── 04_Gold_Setup.py        # One-time: Gold table
+│   ├── 02_Bronze_Setup.py      # One-time: Bronze Streaming Tables
+│   ├── 03_Silver_Setup.py      # One-time: Silver Streaming Tables + constraints
+│   ├── 04_Gold_Setup.py        # One-time: Gold Materialized View
 │   ├── 05_Daily_API_Call.py    # Daily: Fetch from FRED API
-│   ├── 06_Bronze_Load.py       # Daily: COPY INTO Bronze
-│   ├── 07_Silver_Load.py       # Daily: MERGE into Silver
-│   └── 08_Gold_Load.py         # Daily: INSERT OVERWRITE Gold
+│   ├── 06_Bronze_Load.py       # Deprecated: Auto-handled by Streaming Tables
+│   ├── 07_Silver_Load.py       # Deprecated: Auto-handled by Streaming Tables
+│   └── 08_Gold_Load.py         # Deprecated: Auto-handled by Materialized View
 │
 ├── src/
 │   ├── __init__.py
@@ -111,6 +135,9 @@ FRED/
 │   └── config.yaml
 │
 ├── resources/                  # DAB resource configs
+│   ├── jobs.yml               # Job definitions
+│   └── pipelines.yml          # DLT pipeline configuration
+│
 ├── environments/               # DAB environment configs
 │
 ├── tests/
@@ -118,7 +145,8 @@ FRED/
 │
 └── docs/
     ├── data_dictionary.md
-    └── architecture.md
+    ├── architecture.md
+    └── dlt_pipeline_setup.md  # DLT pipeline setup guide
 ```
 
 ## Data Model

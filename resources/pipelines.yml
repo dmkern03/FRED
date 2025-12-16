@@ -1,0 +1,52 @@
+# Delta Live Tables Pipeline Configuration
+resources:
+  pipelines:
+    fred_dlt_pipeline:
+      name: "FRED Data Pipeline - DLT"
+      target: "investments.fred"
+
+      # Pipeline configuration
+      configuration:
+        catalog: "investments"
+        schema: "fred"
+
+      # Notebook libraries that define the pipeline
+      libraries:
+        - notebook:
+            path: ../notebooks/02_Bronze_Setup.py
+        - notebook:
+            path: ../notebooks/03_Silver_Setup.py
+        - notebook:
+            path: ../notebooks/04_Gold_Setup.py
+
+      # Development settings
+      development: true
+      continuous: false
+
+      # Cluster configuration
+      clusters:
+        - label: "default"
+          autoscale:
+            min_workers: 1
+            max_workers: 2
+            mode: "ENHANCED"
+
+      # Channel - use 'current' for latest features
+      channel: "CURRENT"
+
+      # Enable or disable table expectations
+      expectations:
+        fail_on_error: false
+
+      # Photon acceleration
+      photon: true
+
+      # Storage location (optional - Unity Catalog will use managed location if not specified)
+      # storage: "/mnt/dlt/fred"
+
+      # Notifications (optional)
+      # notifications:
+      #   - alerts:
+      #       - "on-update-failure"
+      #     email_recipients:
+      #       - "data-team@example.com"
