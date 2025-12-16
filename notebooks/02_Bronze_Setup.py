@@ -51,7 +51,7 @@
 # MAGIC ```
 # MAGIC FRED API
 # MAGIC     │
-# MAGIC     ▼
+# MAGIC             ▼
 # MAGIC ┌─────────────────────────────────────────┐
 # MAGIC │  Landing Zone (CSV in Volumes)          │
 # MAGIC │  /Volumes/investments/fred/observations/ │
