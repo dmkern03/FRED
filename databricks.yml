@@ -22,7 +22,7 @@ variables:
     default: "dev"
   dev_host:
     description: "URL for Dev"
-    default: https://dbc-90335e8a-09d6.cloud.databricks.com/
+    default: https://adb-1585634049715221.1.azuredatabricks.net/
   prod_host:
     description: "URL for Prod"
     default: https://dbc-6c839758-aba3.cloud.databricks.com/  
@@ -35,7 +35,7 @@ targets:
     mode: development
     default: true
     workspace:
-      host: ${var.dev_host}
+      host: https://adb-1585634049715221.1.azuredatabricks.net/
 
   prod:
     mode: production

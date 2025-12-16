@@ -7,7 +7,7 @@ targets:
     mode: development
     default: true
     workspace:
-      host: ${var.dev_host}
+      host: https://adb-1585634049715221.1.azuredatabricks.net/
     
     resources:
       pipelines:
