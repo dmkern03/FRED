@@ -3,21 +3,41 @@
 
 bundle:
   name: fred-data-pipeline
-  version: 1.0.2
+  version: 1.0.3
 
 # Include other configuration files
 include:
   - resources/*.yml
   - environments/*.yml
 
+variables:
+  catalog:
+    description: "Target catalog for the pipeline"
+    default: "investments"
+  schema:
+    description: "Target schema for the pipeline"
+    default: "fred"
+  environment:
+    description: "Deployment environment"
+    default: "dev"
+  dev_host:
+    description: "URL for Dev"
+    default: https://dbc-90335e8a-09d6.cloud.databricks.com/
+  prod_host:
+    description: "URL for Prod"
+    default: https://dbc-6c839758-aba3.cloud.databricks.com/  
+  email_rec:
+    description: "Enable notifications for production failures"
+    default: "dmkern03@gmail.com"  
+
 targets:
   dev:
     mode: development
     default: true
     workspace:
-      host: https://dbc-90335e8a-09d6.cloud.databricks.com/
+      host: ${var.dev_host}
 
   prod:
     mode: production
     workspace:
-      host: https://dbc-6c839758-aba3.cloud.databricks.com/
+      host: ${var.prod_host}

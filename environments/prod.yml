@@ -1,16 +1,12 @@
 # Production environment configuration
 # Override settings for production deployment
 
-variables:
-  catalog: "investments"
-  schema: "fred"
-
 targets:
   prod:
     # Production-specific pipeline settings
     mode: production
     workspace:
-      host: https://dbc-6c839758-aba3.cloud.databricks.com/
+      host: ${var.prod_host}
 
     resources:
       pipelines:
@@ -31,11 +27,11 @@ targets:
                 - "on-update-failure"
                 - "on-flow-failure"
               email_recipients:
-                - "data-team@example.com"  # Replace with your team email
+                - ${var.email_rec}
 
           # Production table properties
           configuration:
-            catalog: "investments"
-            schema: "fred"
+            catalog: ${var.catalog}
+            schema: ${var.schema}
             # Add production-specific configs
             pipelines.reset.allowed: "false"

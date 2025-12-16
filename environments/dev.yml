@@ -1,17 +1,13 @@
 # Development environment configuration
 # Override settings for development deployment
 
-variables:
-  catalog: "investments"
-  schema: "fred"
-
 targets:
   dev:
     # Development-specific pipeline settings
     mode: development
     default: true
     workspace:
-      host: https://dbc-90335e8a-09d6.cloud.databricks.com/
+      host: ${var.dev_host}
     
     resources:
       pipelines:
@@ -31,5 +27,5 @@ targets:
 
           # Development table properties
           configuration:
-            catalog: "investments"
-            schema: "fred_dev"  # Separate schema for dev
+            catalog: ${var.catalog}
+            schema: ${var.schema}

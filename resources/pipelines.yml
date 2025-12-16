@@ -3,13 +3,13 @@ resources:
   pipelines:
     fred_dlt_pipeline:
       name: "FRED Data Pipeline - DLT"
-      catalog: "investments"
-      target: "fred"
+      catalog: ${var.catalog}
+      target: ${var.schema}
 
       # Pipeline configuration
       configuration:
-        catalog: "investments"
-        schema: "fred"
+        catalog: ${var.catalog}
+        schema: ${var.schema}
 
       # Notebook libraries that define the pipeline
       libraries:
@@ -41,8 +41,13 @@ resources:
       # storage: "/mnt/dlt/fred"
 
       # Notifications (optional)
-       notifications:
-         - alerts:
-             - "on-update-failure"
-           email_recipients:
-             - "dmkern03@gmail.com"
+      # notifications:
+      #   - alerts:
+      #       - "on-update-failure"
+      #     email_recipients:
+      #       - "dmkern03@gmail.com"
+      notification_settings:
+        no_alert_for_skipped_runs: true
+      email_notifications:
+        on_failure:
+          - ${var.email_rec}

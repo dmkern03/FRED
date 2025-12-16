@@ -2,6 +2,22 @@
 # Override bundle settings per environment
 
 # Example:
- variables:
-   catalog: "investments"
-   schema: "fred"
+#variables:
+#  catalog:
+#    description: "Target catalog for the pipeline"
+#    default: "investments"
+#  schema:
+#    description: "Target schema for the pipeline"
+#    default: "fred"
+#  environment:
+#    description: "Deployment environment"
+#    default: "dev"
+#  dev_host:
+#    description: "URL for Dev"
+#    default: https://dbc-90335e8a-09d6.cloud.databricks.com/
+#  prod_host:
+#    description: "URL for Prod"
+#    default: https://dbc-6c839758-aba3.cloud.databricks.com/  
+#  email_rec:
+#    description: "Enable notifications for production failures"
+#    default: "dmkern03@gmail.com"  
