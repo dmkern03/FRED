@@ -17,99 +17,120 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Create schema
-# MAGIC CREATE SCHEMA IF NOT EXISTS investments.fred;
+import dlt
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Bronze Observations Streaming Table
 # MAGIC
-# MAGIC -- Landing Zone Volumes (CSV files)
-# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.observations;
-# MAGIC CREATE VOLUME IF NOT EXISTS investments.fred.metadata;
+# MAGIC Ingests CSV files from `/Volumes/investments/fred/observations/` using Auto Loader (cloudFiles).
 # MAGIC
-# MAGIC -- Bronze Layer Streaming Tables
-# MAGIC DROP TABLE IF EXISTS investments.fred.bronze_observations;
-# MAGIC CREATE OR REPLACE STREAMING TABLE investments.fred.bronze_observations (
-# MAGIC     run_timestamp TIMESTAMP,
-# MAGIC     series_id STRING,
-# MAGIC     series_name STRING,
-# MAGIC     date DATE,
-# MAGIC     value DOUBLE,
-# MAGIC     ingestion_timestamp TIMESTAMP
-# MAGIC )
-# MAGIC CLUSTER BY (series_id, date)
-# MAGIC TBLPROPERTIES (
-# MAGIC     'delta.autoOptimize.optimizeWrite' = 'true',
-# MAGIC     'delta.autoOptimize.autoCompact' = 'true',
-# MAGIC     'delta.enableChangeDataFeed' = 'false',
-# MAGIC     'delta.tuneFileSizesForRewrites' = 'true',
-# MAGIC     'pipelines.autoOptimize.managed' = 'true',
-# MAGIC     'pipelines.reset.allowed' = 'false',
-# MAGIC     'quality' = 'bronze'
-# MAGIC )
-# MAGIC COMMENT 'Bronze layer: Raw FRED observations (Streaming Table)'
-# MAGIC AS SELECT
-# MAGIC     run_timestamp,
-# MAGIC     series_id,
-# MAGIC     series_name,
-# MAGIC     date,
-# MAGIC     value,
-# MAGIC     ingestion_timestamp
-# MAGIC FROM cloud_files(
-# MAGIC     '/Volumes/investments/fred/observations/',
-# MAGIC     'csv',
-# MAGIC     map('header', 'true', 'inferSchema', 'true', 'cloudFiles.schemaLocation', '/Volumes/investments/fred/observations/_schema')
-# MAGIC );
+# MAGIC **Features:**
+# MAGIC - Auto Loader for continuous file ingestion
+# MAGIC - Schema inference and evolution
+# MAGIC - Optimized write and auto-compaction
+
+# COMMAND ----------
+
+@dlt.table(
+    name="bronze_observations",
+    comment="Bronze layer: Raw FRED observations (Streaming Table)",
+    table_properties={
+        "delta.autoOptimize.optimizeWrite": "true",
+        "delta.autoOptimize.autoCompact": "true",
+        "delta.enableChangeDataFeed": "false",
+        "delta.tuneFileSizesForRewrites": "true",
+        "pipelines.autoOptimize.managed": "true",
+        "pipelines.reset.allowed": "false",
+        "quality": "bronze"
+    }
+)
+def bronze_observations():
+    """
+    Bronze layer: Raw FRED observations from CSV files in volumes.
+
+    Reads from: /Volumes/investments/fred/observations/
+    Schema Location: /Volumes/investments/fred/observations/_schema
+    """
+    return (
+        spark.readStream
+        .format("cloudFiles")
+        .option("cloudFiles.format", "csv")
+        .option("header", "true")
+        .option("inferSchema", "true")
+        .option("cloudFiles.schemaLocation", "/Volumes/investments/fred/observations/_schema")
+        .load("/Volumes/investments/fred/observations/")
+        .select(
+            col("run_timestamp").cast("timestamp").alias("run_timestamp"),
+            col("series_id").cast("string").alias("series_id"),
+            col("series_name").cast("string").alias("series_name"),
+            col("date").cast("date").alias("date"),
+            col("value").cast("double").alias("value"),
+            current_timestamp().alias("ingestion_timestamp")
+        )
+    )
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Bronze Metadata Streaming Table
 # MAGIC
-# MAGIC DROP TABLE IF EXISTS investments.fred.bronze_metadata;
-# MAGIC CREATE OR REPLACE STREAMING TABLE investments.fred.bronze_metadata (
-# MAGIC     run_timestamp STRING,
-# MAGIC     series_id STRING,
-# MAGIC     friendly_name STRING,
-# MAGIC     title STRING,
-# MAGIC     frequency STRING,
-# MAGIC     frequency_short STRING,
-# MAGIC     units STRING,
-# MAGIC     units_short STRING,
-# MAGIC     seasonal_adjustment STRING,
-# MAGIC     seasonal_adjustment_short STRING,
-# MAGIC     observation_start STRING,
-# MAGIC     observation_end STRING,
-# MAGIC     last_updated STRING,
-# MAGIC     popularity STRING,
-# MAGIC     notes STRING
-# MAGIC )
-# MAGIC CLUSTER BY (series_id)
-# MAGIC TBLPROPERTIES (
-# MAGIC     'delta.autoOptimize.optimizeWrite' = 'true',
-# MAGIC     'delta.autoOptimize.autoCompact' = 'true',
-# MAGIC     'delta.enableChangeDataFeed' = 'false',
-# MAGIC     'delta.tuneFileSizesForRewrites' = 'true',
-# MAGIC     'pipelines.autoOptimize.managed' = 'true',
-# MAGIC     'pipelines.reset.allowed' = 'false',
-# MAGIC     'quality' = 'bronze'
-# MAGIC )
-# MAGIC COMMENT 'Bronze layer: Raw FRED series metadata/dimensional info (Streaming Table)'
-# MAGIC AS SELECT
-# MAGIC     run_timestamp,
-# MAGIC     series_id,
-# MAGIC     friendly_name,
-# MAGIC     title,
-# MAGIC     frequency,
-# MAGIC     frequency_short,
-# MAGIC     units,
-# MAGIC     units_short,
-# MAGIC     seasonal_adjustment,
-# MAGIC     seasonal_adjustment_short,
-# MAGIC     observation_start,
-# MAGIC     observation_end,
-# MAGIC     last_updated,
-# MAGIC     popularity,
-# MAGIC     notes
-# MAGIC FROM cloud_files(
-# MAGIC     '/Volumes/investments/fred/metadata/',
-# MAGIC     'json',
-# MAGIC     map('cloudFiles.schemaLocation', '/Volumes/investments/fred/metadata/_schema')
-# MAGIC );
+# MAGIC Ingests JSON files from `/Volumes/investments/fred/metadata/` using Auto Loader (cloudFiles).
 # MAGIC
+# MAGIC **Features:**
+# MAGIC - Auto Loader for continuous file ingestion
+# MAGIC - Schema inference and evolution
+# MAGIC - Optimized write and auto-compaction
+
+# COMMAND ----------
+
+@dlt.table(
+    name="bronze_metadata",
+    comment="Bronze layer: Raw FRED series metadata/dimensional info (Streaming Table)",
+    table_properties={
+        "delta.autoOptimize.optimizeWrite": "true",
+        "delta.autoOptimize.autoCompact": "true",
+        "delta.enableChangeDataFeed": "false",
+        "delta.tuneFileSizesForRewrites": "true",
+        "pipelines.autoOptimize.managed": "true",
+        "pipelines.reset.allowed": "false",
+        "quality": "bronze"
+    }
+)
+def bronze_metadata():
+    """
+    Bronze layer: Raw FRED series metadata from JSON files in volumes.
+
+    Reads from: /Volumes/investments/fred/metadata/
+    Schema Location: /Volumes/investments/fred/metadata/_schema
+    """
+    return (
+        spark.readStream
+        .format("cloudFiles")
+        .option("cloudFiles.format", "json")
+        .option("cloudFiles.schemaLocation", "/Volumes/investments/fred/metadata/_schema")
+        .load("/Volumes/investments/fred/metadata/")
+        .select(
+            col("run_timestamp").cast("string").alias("run_timestamp"),
+            col("series_id").cast("string").alias("series_id"),
+            col("friendly_name").cast("string").alias("friendly_name"),
+            col("title").cast("string").alias("title"),
+            col("frequency").cast("string").alias("frequency"),
+            col("frequency_short").cast("string").alias("frequency_short"),
+            col("units").cast("string").alias("units"),
+            col("units_short").cast("string").alias("units_short"),
+            col("seasonal_adjustment").cast("string").alias("seasonal_adjustment"),
+            col("seasonal_adjustment_short").cast("string").alias("seasonal_adjustment_short"),
+            col("observation_start").cast("string").alias("observation_start"),
+            col("observation_end").cast("string").alias("observation_end"),
+            col("last_updated").cast("string").alias("last_updated"),
+            col("popularity").cast("string").alias("popularity"),
+            col("notes").cast("string").alias("notes")
+        )
+    )
 
 # COMMAND ----------
 
@@ -118,7 +139,7 @@
 # MAGIC ```
 # MAGIC FRED API
 # MAGIC     │
-# MAGIC             ▼
+# MAGIC     ▼
 # MAGIC ┌─────────────────────────────────────────┐
 # MAGIC │  Landing Zone (CSV in Volumes)          │
 # MAGIC │  /Volumes/investments/fred/observations/ │
@@ -130,30 +151,5 @@
 # MAGIC │  Bronze Layer (Delta Tables)            │
 # MAGIC │  investments.fred.bronze_observations   │
 # MAGIC │  investments.fred.bronze_metadata       │
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Latest observations
-# MAGIC SELECT * FROM investments.fred.bronze_observations
-# MAGIC WHERE run_timestamp = (SELECT MAX(run_timestamp) FROM investments.fred.bronze_observations);
-# MAGIC
-# MAGIC -- Observation history for 10-Year Treasury
-# MAGIC SELECT * FROM investments.fred.bronze_observations
-# MAGIC WHERE series_id = 'DGS10'
-# MAGIC ORDER BY date DESC;
-# MAGIC
-# MAGIC -- Metadata for all series
-# MAGIC SELECT * FROM investments.fred.bronze_metadata
-# MAGIC WHERE run_timestamp = (SELECT MAX(run_timestamp) FROM investments.fred.bronze_metadata);
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Note: Bronze tables are now defined as Streaming Tables above
-# MAGIC -- This cell is kept for reference but can be removed
+# MAGIC └─────────────────────────────────────────┘
+# MAGIC ```

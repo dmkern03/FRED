@@ -35,10 +35,12 @@ This project creates and maintains FRED economic data in a Databricks lakehouse 
 
 - ✅ Automated FRED API data fetching
 - ✅ Medallion architecture (Bronze → Silver → Gold)
-- ✅ **Streaming Tables** for Bronze and Silver layers with Auto Loader
-- ✅ **Materialized View** for Gold layer with automatic refresh
-- ✅ Primary/Foreign key constraints in Silver layer
+- ✅ **Streaming Tables** for Bronze and Silver layers with Auto Loader (DLT Python API)
+- ✅ **Materialized View** for Gold layer with automatic refresh (DLT Python API)
+- ✅ Primary/Foreign key constraints in Silver layer (via DLT expectations)
 - ✅ Continuous incremental processing with streaming
+- ✅ Data quality validation with `@dlt.expect_all_or_drop` decorators
+- ✅ PySpark transformations for type conversions and data cleaning
 - ✅ Databricks Secrets integration for API keys
 - ✅ Databricks Asset Bundles configuration
 
@@ -114,9 +116,9 @@ FRED/
 │
 ├── notebooks/
 │   ├── 01_API_Setup.py         # One-time: volumes & secrets
-│   ├── 02_Bronze_Setup.py      # One-time: Bronze Streaming Tables
-│   ├── 03_Silver_Setup.py      # One-time: Silver Streaming Tables + constraints
-│   ├── 04_Gold_Setup.py        # One-time: Gold Materialized View
+│   ├── 02_Bronze_Setup.py      # DLT: Bronze Streaming Tables (Python API)
+│   ├── 03_Silver_Setup.py      # DLT: Silver Streaming Tables + expectations (Python API)
+│   ├── 04_Gold_Setup.py        # DLT: Gold Materialized View (Python API)
 │   ├── 05_Daily_API_Call.py    # Daily: Fetch from FRED API
 │   ├── 06_Bronze_Load.py       # Deprecated: Auto-handled by Streaming Tables
 │   ├── 07_Silver_Load.py       # Deprecated: Auto-handled by Streaming Tables

@@ -11,45 +11,93 @@
 # MAGIC
 # MAGIC ## Features:
 # MAGIC - Automatic refresh when source Silver tables update
-# MAGIC - Optimized for analytical queries with CLUSTER BY
+# MAGIC - Optimized for analytical queries
 # MAGIC - Business-ready denormalized schema
 # MAGIC - Query performance optimization with Delta auto-optimize
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Gold Layer Materialized View
-# MAGIC DROP MATERIALIZED VIEW IF EXISTS investments.fred.gold_observations;
-# MAGIC CREATE MATERIALIZED VIEW investments.fred.gold_observations
-# MAGIC CLUSTER BY (series_id, date)
-# MAGIC TBLPROPERTIES (
-# MAGIC     'delta.autoOptimize.optimizeWrite' = 'true',
-# MAGIC     'delta.autoOptimize.autoCompact' = 'true',
-# MAGIC     'delta.enableChangeDataFeed' = 'false',
-# MAGIC     'delta.tuneFileSizesForRewrites' = 'true',
-# MAGIC     'pipelines.autoOptimize.managed' = 'true',
-# MAGIC     'quality' = 'gold'
-# MAGIC )
-# MAGIC COMMENT 'Gold layer: Denormalized FRED data with metadata (Materialized View)'
-# MAGIC AS
-# MAGIC SELECT
-# MAGIC   r.series_id,
-# MAGIC   r.date,
-# MAGIC   r.value,
-# MAGIC   m.title,
-# MAGIC   m.friendly_name,
-# MAGIC   m.units,
-# MAGIC   'FRED' AS source
-# MAGIC FROM
-# MAGIC   investments.fred.silver_observations r
-# MAGIC JOIN
-# MAGIC   investments.fred.silver_metadata m
-# MAGIC ON
-# MAGIC   r.series_id = m.series_id;
+import dlt
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC -- Note: Materialized Views automatically maintain data freshness
-# MAGIC -- Change Data Feed is not applicable to Materialized Views
-# MAGIC -- The view will automatically refresh when source tables change
+# MAGIC %md
+# MAGIC ## Gold Observations Materialized View
+# MAGIC
+# MAGIC Denormalized view joining silver_observations and silver_metadata for business-ready analytics.
+# MAGIC
+# MAGIC **Features:**
+# MAGIC - Automatic refresh when source tables change
+# MAGIC - Optimized read performance with auto-optimize
+# MAGIC - Denormalized schema (no joins needed for queries)
+
+# COMMAND ----------
+
+@dlt.table(
+    name="gold_observations",
+    comment="Gold layer: Denormalized FRED data with metadata (Materialized View)",
+    table_properties={
+        "delta.autoOptimize.optimizeWrite": "true",
+        "delta.autoOptimize.autoCompact": "true",
+        "delta.enableChangeDataFeed": "false",
+        "delta.tuneFileSizesForRewrites": "true",
+        "pipelines.autoOptimize.managed": "true",
+        "quality": "gold"
+    }
+)
+def gold_observations():
+    """
+    Gold layer: Business-ready denormalized FRED data.
+
+    Joins:
+    - silver_observations (fact table)
+    - silver_metadata (dimension table)
+
+    Output Schema:
+    - series_id: Economic series identifier
+    - date: Observation date
+    - value: Observation value
+    - title: Full series title
+    - friendly_name: Short friendly name
+    - units: Measurement units
+    - source: Data source (always 'FRED')
+    """
+    # Read from silver tables
+    observations = dlt.read("silver_observations")
+    metadata = dlt.read("silver_metadata")
+
+    # Join and select business-ready columns
+    return (
+        observations.alias("r")
+        .join(metadata.alias("m"), observations.series_id == metadata.series_id, "inner")
+        .select(
+            col("r.series_id").alias("series_id"),
+            col("r.date").alias("date"),
+            col("r.value").alias("value"),
+            col("m.title").alias("title"),
+            col("m.friendly_name").alias("friendly_name"),
+            col("m.units").alias("units"),
+            lit("FRED").alias("source")
+        )
+    )
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Materialized View Behavior
+# MAGIC
+# MAGIC **Automatic Refresh:**
+# MAGIC - The view automatically refreshes when source tables (silver_observations, silver_metadata) update
+# MAGIC - No manual refresh needed when running in DLT pipeline
+# MAGIC - Delta Live Tables manages the refresh schedule based on upstream changes
+# MAGIC
+# MAGIC **Change Data Feed:**
+# MAGIC - Not applicable to materialized views (disabled in table properties)
+# MAGIC - The view is read-only and always reflects the current state of source tables
+# MAGIC
+# MAGIC **Query Performance:**
+# MAGIC - Optimized for analytical queries with auto-optimize enabled
+# MAGIC - Denormalized schema eliminates need for joins in downstream queries
+# MAGIC - Delta auto-compaction maintains optimal file sizes

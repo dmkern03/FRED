@@ -105,32 +105,36 @@ The view automatically maintains referential integrity through the JOIN operatio
 
 ## Constraint Enforcement in Delta Live Tables
 
-### How Constraints Work
+### How Constraints Work with Python API
 
 1. **Primary Keys:**
-   - Defined inline in CREATE STREAMING TABLE
+   - Documented in table properties and comments
+   - Enforced via DLT expectations (`@dlt.expect_all_or_drop`)
+   - Example: `@dlt.expect_all_or_drop({"pk_series_id_not_null": "series_id IS NOT NULL"})`
    - Informational for documentation and optimization
-   - Not enforced by Delta (no unique constraint check)
    - Application-level enforcement during streaming
 
 2. **Foreign Keys:**
-   - Defined inline in CREATE STREAMING TABLE
+   - Documented in table properties and comments
+   - Enforced via DLT expectations and filtering
+   - Example: Application-level filtering with `.filter(col("series_id").isNotNull())`
    - Informational for lineage and documentation
-   - Not enforced by Delta (no referential integrity check)
    - Application-level enforcement during streaming
 
 3. **NOT NULL:**
-   - Enforced by Delta Lake
-   - Write operations fail if NULL values provided
+   - Enforced via DLT expectations (`@dlt.expect_all_or_drop`)
+   - Example: `@dlt.expect_all_or_drop({"value_not_null": "value IS NOT NULL"})`
    - Streaming queries filter out NULL values before insert
+   - Rows violating expectations are dropped
 
 ### Best Practices
 
-1. **Define constraints in DDL** for documentation and tooling support
-2. **Filter invalid data** in the streaming query (e.g., `WHERE value IS NOT NULL`)
-3. **Use type conversions** to enforce data types (e.g., `CAST(value AS DOUBLE)`)
-4. **Monitor data quality metrics** in DLT pipeline UI
-5. **Review constraint violations** in event logs
+1. **Document constraints** in table properties and comments for documentation and tooling support
+2. **Use DLT expectations** for constraint enforcement (e.g., `@dlt.expect_all_or_drop({"value_not_null": "value IS NOT NULL"})`)
+3. **Filter invalid data** in PySpark transformations (e.g., `.filter(col("value").isNotNull())`)
+4. **Use type conversions** to enforce data types (e.g., `.cast("double")`, `to_date()`, `to_timestamp()`)
+5. **Monitor data quality metrics** in DLT pipeline UI (expectations tracked automatically)
+6. **Review constraint violations** in event logs and expectations metrics
 
 ---
 

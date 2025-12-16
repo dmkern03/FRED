@@ -5,10 +5,11 @@ This guide explains how to set up and run the FRED data pipeline using Delta Liv
 ## Overview
 
 The FRED pipeline uses Delta Live Tables with:
-- **Streaming Tables** for Bronze and Silver layers
-- **Materialized View** for Gold layer
-- **Auto Loader** for continuous file ingestion
-- **Automated data quality** with constraints and filtering
+- **Streaming Tables** for Bronze and Silver layers (Python API with `@dlt.table`)
+- **Materialized View** for Gold layer (Python API with `@dlt.table`)
+- **Auto Loader** for continuous file ingestion (`cloudFiles` format)
+- **Automated data quality** with DLT expectations (`@dlt.expect_all_or_drop`)
+- **PySpark transformations** for type conversions and data cleaning
 
 ## Prerequisites
 
@@ -193,11 +194,15 @@ Gold Materialized View (DLT Pipeline)
 
 **Issue**: Primary/Foreign key constraints not showing up
 
-**Solution**: Constraints in DLT are informational. Verify they're defined in the CREATE STREAMING TABLE statements. Check with:
+**Solution**: Constraints in DLT Python API are enforced via expectations and documented in table properties. Check with:
 ```sql
 DESCRIBE EXTENDED investments.fred.silver_metadata;
 DESCRIBE EXTENDED investments.fred.silver_observations;
 ```
+
+Look for:
+- Table properties: `constraints` field documenting PK/FK relationships
+- DLT expectations in the pipeline UI showing validation rules (e.g., `pk_series_id_not_null`)
 
 ### No Data in Tables
 
