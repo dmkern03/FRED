@@ -28,33 +28,34 @@ This document describes the architecture for the FRED data pipeline in Databrick
 │  │              │     │  /Volumes/investments/fred/metadata/ │  JSON       │
 │  └──────────────┘     └──────────────────┬───────────────────┘             │
 │                                          │                                   │
-│                                          │ COPY INTO                         │
+│                                          │ Auto Loader (cloud_files)         │
 │                                          ▼                                   │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                        BRONZE LAYER                                   │   │
+│  │                   BRONZE LAYER (Streaming Tables)                     │   │
 │  │  ┌─────────────────────┐  ┌─────────────────────┐                   │   │
 │  │  │ bronze_observations │  │   bronze_metadata   │                   │   │
-│  │  │   (raw strings)     │  │   (raw strings)     │                   │   │
+│  │  │  (streaming table)  │  │  (streaming table)  │                   │   │
 │  │  └─────────────────────┘  └─────────────────────┘                   │   │
 │  └──────────────────────────────────┬───────────────────────────────────┘   │
 │                                     │                                        │
-│                                     │ MERGE (with type conversion)           │
+│                                     │ STREAM (auto type conversion)          │
 │                                     ▼                                        │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                        SILVER LAYER                                   │   │
+│  │                   SILVER LAYER (Streaming Tables)                     │   │
 │  │  ┌─────────────────────┐  ┌─────────────────────┐                   │   │
 │  │  │silver_observations  │  │   silver_metadata   │                   │   │
+│  │  │  (streaming table)  │  │  (streaming table)  │                   │   │
 │  │  │   FK: series_id ────┼──│── PK: series_id     │                   │   │
 │  │  │   FK: date          │  │                     │                   │   │
 │  │  └─────────────────────┘  └─────────────────────┘                   │   │
 │  └──────────────────────────────────┬───────────────────────────────────┘   │
 │                                     │                                        │
-│                                     │ INSERT OVERWRITE                       │
+│                                     │ Auto Refresh                           │
 │                                     ▼                                        │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                         GOLD LAYER                                    │   │
+│  │                    GOLD LAYER (Materialized View)                     │   │
 │  │  ┌────────────────────────────────────────────────────────────────┐ │   │
-│  │  │ gold_observations (denormalized, Change Data Feed enabled)     │ │   │
+│  │  │ gold_observations (denormalized, auto-refreshed)               │ │   │
 │  │  └────────────────────────────────────────────────────────────────┘ │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                              │
@@ -63,24 +64,34 @@ This document describes the architecture for the FRED data pipeline in Databrick
 
 ## Data Flow
 
-| Step | Notebook | Action |
-|------|----------|--------|
-| 1 | 05_Daily_API_Call | Fetch from FRED API → CSV/JSON to Volumes |
-| 2 | 06_Bronze_Load | COPY INTO Bronze tables |
-| 3 | 07_Silver_Load | MERGE into Silver (type conversion, dedup) |
-| 4 | 08_Gold_Load | INSERT OVERWRITE Gold (denormalize) |
+| Step | Action | Description |
+|------|--------|-------------|
+| 1 | **API Fetch** (05_Daily_API_Call) | Fetch from FRED API → CSV/JSON to Volumes |
+| 2 | **Bronze Ingestion** (Automated) | Streaming Tables with Auto Loader continuously ingest from Volumes |
+| 3 | **Silver Transformation** (Automated) | Streaming Tables read from Bronze with type conversion and filtering |
+| 4 | **Gold Materialization** (Automated) | Materialized View auto-refreshes with denormalized data from Silver |
+
+**Note:** Only step 1 requires scheduling. Steps 2-4 are handled automatically by Databricks.
 
 ## Key Design Decisions
 
-### Why MERGE for Silver?
-- Deduplication by `series_id` + `date` with max `run_timestamp`
-- Only updates rows when values actually change
-- Maintains referential integrity with constraints
+### Why Streaming Tables for Bronze?
+- **Auto Loader** continuously monitors volumes for new files
+- Automatically handles schema evolution and inference
+- Idempotent processing with exactly-once semantics
+- No manual COPY INTO commands needed
 
-### Why INSERT OVERWRITE for Gold?
-- Simple denormalization (join Silver tables)
-- Full refresh ensures consistency
-- Change Data Feed tracks changes for downstream
+### Why Streaming Tables for Silver?
+- Continuous incremental processing from Bronze
+- Type conversions and data quality filters applied in streaming
+- Maintains referential integrity with constraints
+- Automatic deduplication and state management
+
+### Why Materialized View for Gold?
+- Automatically refreshes when source Silver tables change
+- Simple denormalized view (join Silver tables)
+- No manual INSERT OVERWRITE needed
+- Optimized query performance for downstream consumers
 
 ### Constraints
 - **PK on silver_metadata**: `series_id`
