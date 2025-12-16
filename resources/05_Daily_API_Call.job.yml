@@ -1,0 +1,19 @@
+resources:
+  jobs:
+    _05_Daily_API_Call:
+      name: 05_Daily_API_Call
+      schedule:
+        quartz_cron_expression: 56 0 4 * * ?
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: 05_Daily_API_Call
+          notebook_task:
+            notebook_path: ../notebooks/05_Daily_API_Call.py
+      notification_settings:
+        no_alert_for_skipped_runs: true
+      email_notifications:
+        on_failure:
+          - dmkern03@gmail.com
+      queue:
+        enabled: true
