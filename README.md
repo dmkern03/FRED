@@ -1,6 +1,6 @@
 # Databricks FRED Data Pipeline
 
-[![CI](https://github.com/dmkern03/FRED/actions/workflows/ci.yml/badge.svg)](https://github.com/dmkern03/FRED/actions/workflows/ci.yml)
+
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Databricks](https://img.shields.io/badge/Databricks-Unity%20Catalog-orange.svg)](https://databricks.com/)
